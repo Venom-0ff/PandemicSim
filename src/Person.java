@@ -67,6 +67,8 @@ public class Person {
             case 4:
                 this.colour = Color.MAGENTA;
                 break;
+            case 5:
+            this.colour = Color.GREEN;
         }
 
         // generate random x and y spawn coordinates
@@ -144,7 +146,7 @@ public class Person {
             if (person2.isAlive()) {
                 if (!person2.isInfected() && person1.isInfected()) {
                     Random rand = new Random();
-                    person2.setIsInfected(rand.nextDouble(1.0) < person2.getINFECT_CHANCE(person2.getImmunityStatus()));
+                    person2.setIsInfected(rand.nextDouble(1.0) <= person2.getINFECT_CHANCE(person2.getImmunityStatus()));
 
                     if (person2.isInfected()) { person2.setColour(Color.RED); }
                 }

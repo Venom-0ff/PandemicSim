@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
 import javax.swing.*;
+import java.util.ArrayList;
 
 /**
 * The {@code Simulation} class represents a spread of infection among population.
@@ -9,36 +10,78 @@ import javax.swing.*;
 */
 public class Simulation extends JPanel {
     // class members
-    private Timer time;
+    public Timer time;
     private final int WIDTH = 1920, HEIGHT = 1080;      // size of JPanel
 	private final int REFRESH_TIME = 200;               // time in milliseconds between re-paints of the screen
 	
-    // TODO:
-    // 1. Make POPULATION a user-defined value.
-    // 2. Add other user-defined parameters (Levels of immunity for specified percentages of the population).
-    private final int POPULATION = 600;
-    private Person[] personArray;
+    private int population = 100;
+    private int oneShotPercent = 0;
+    private int twoShotsPercent = 0;
+    private int threeShotsPercent = 0;
+    private int recoveredPercent = 0;
+    private ArrayList<Person> personArray;
 
     /**
      * Starts the simulation of the pandemic.
      */
-    public Simulation() {
+    public Simulation(int populationNum, int oneShotPercent, int twoShotsPercent, int threeShotsPercent, int recovered) {
+        JFrame frame = new JFrame("Pandemic Simulator");
+		
+		// boilerplate
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new FlowLayout());
+		frame.setSize(1920,1080);
+		frame.setLocationRelativeTo(null);
+		
+		frame.getContentPane().setBackground(Color.DARK_GRAY);
+
         this.time = new Timer(REFRESH_TIME, new CollisionListener());
 
-        personArray = new Person[POPULATION];
-        // the first infected
-        personArray[0] = new Person(0, WIDTH, HEIGHT);
+        this.population = populationNum;
+        this.oneShotPercent = oneShotPercent;
+        this.twoShotsPercent = twoShotsPercent;
+        this.threeShotsPercent = threeShotsPercent;
+        this.recoveredPercent = recovered;
 
-        // TODO:
-        // Populate the array with objects based on the user specified values.
+        personArray = new ArrayList<Person>();
+        // the first infected person
+        personArray.add(new Person(0, WIDTH, HEIGHT));
 
-        // array with dummy population, (no one has immunity)
-        for (int i = 1; i < personArray.length; i++) {
-            personArray[i] = new Person(1, WIDTH, HEIGHT);
+        if (this.oneShotPercent != 0) {
+            for (int i = 0; i < this.population / this.oneShotPercent * 100; i++) {
+                personArray.add(new Person(2, WIDTH, HEIGHT));
+            }
+        }
+
+        if (this.twoShotsPercent != 0) {
+            for (int i = 0; i < this.population / this.twoShotsPercent * 100; i++) {
+                personArray.add(new Person(3, WIDTH, HEIGHT));
+            }
+        }
+
+        if (this.threeShotsPercent != 0) {
+            for (int i = 0; i < this.population / this.threeShotsPercent * 100; i++) {
+                personArray.add(new Person(4, WIDTH, HEIGHT));
+            }
+        }
+
+        if (this.recoveredPercent != 0) {
+            for (int i = 0; i < this.population / this.recoveredPercent * 100; i++) {
+                personArray.add(new Person(5, WIDTH, HEIGHT));
+            }
+        }
+
+        for (int i = 0; i < this.population - personArray.size(); i++) {
+            personArray.add(new Person(1, WIDTH, HEIGHT));
         }
 
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		this.setBackground(Color.GRAY);
+
+		frame.add(this);
+		frame.pack();
+
+		frame.setVisible(true);
 
         this.time.start();
 
@@ -52,13 +95,13 @@ public class Simulation extends JPanel {
 	{
 		super.paintComponent(g);
 		
-		for(int i = 0; i < personArray.length; i++)
+		for(int i = 0; i < personArray.size(); i++)
 		{
 			//get the color
-			g.setColor(personArray[i].getColour());
+			g.setColor(personArray.get(i).getColour());
 			g.fillOval(
-                personArray[i].getXCoord(),
-                personArray[i].getYCoord(),
+                personArray.get(i).getXCoord(),
+                personArray.get(i).getYCoord(),
                 Person.getDiameter(),
                 Person.getDiameter()
                 );
@@ -69,41 +112,41 @@ public class Simulation extends JPanel {
     private class CollisionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            for (int i = 0; i < POPULATION; i++) {
+            for (int i = 0; i < personArray.size(); i++) {
                 // move the population around with move()
-                Person.move(personArray[i], WIDTH, HEIGHT);
+                Person.move(personArray.get(i), WIDTH, HEIGHT);
 
                 // increment the repaint cycle counter if the person is infected
-                if (personArray[i].isInfected()) {
-                    personArray[i].setCycleCount(personArray[i].getCycleCount() + 1);
+                if (personArray.get(i).isInfected()) {
+                    personArray.get(i).setCycleCount(personArray.get(i).getCycleCount() + 1);
 
                     // check if the counter >= 150 and determine the person's state
-                    if (personArray[i].getCycleCount() >= 150) {
+                    if (personArray.get(i).getCycleCount() >= 150) {
                         Random rand = new Random();
-                        personArray[i].setIsAlive(!(rand.nextDouble(1.0) <= personArray[i].getDEATH_CHANCE(personArray[i].getImmunityStatus())));
+                        personArray.get(i).setIsAlive(!(rand.nextDouble(1.0) <= personArray.get(i).getDEATH_CHANCE(personArray.get(i).getImmunityStatus())));
 
-                        if (personArray[i].isAlive()) {
-                            personArray[i].setColour(Color.GREEN);
+                        if (personArray.get(i).isAlive()) {
+                            personArray.get(i).setColour(Color.GREEN);
 
-                            int newImmunityStatus = personArray[i].getImmunityStatus() < 3 ? 5 : personArray[i].getImmunityStatus();
-                            personArray[i].setImmunityStatus(newImmunityStatus);
+                            int newImmunityStatus = personArray.get(i).getImmunityStatus() < 3 ? 5 : personArray.get(i).getImmunityStatus();
+                            personArray.get(i).setImmunityStatus(newImmunityStatus);
                         }
                         else {
-                            personArray[i].setColour(Color.BLACK);
+                            personArray.get(i).setColour(Color.BLACK);
 
-                            personArray[i].setXInc(0);
-                            personArray[i].setYInc(0);
+                            personArray.get(i).setXInc(0);
+                            personArray.get(i).setYInc(0);
                         }
 
-                        personArray[i].setIsInfected(false);
+                        personArray.get(i).setIsInfected(false);
                     }
                 }
             }
 
             // check for collisions among the population
-            for (int i = 0; i < POPULATION; i++) {
-                for (int j = i + 1; j < POPULATION; j++) {
-                    Person.checkCollision(personArray[i], personArray[j]);
+            for (int i = 0; i < personArray.size(); i++) {
+                for (int j = i + 1; j < personArray.size(); j++) {
+                    Person.checkCollision(personArray.get(i), personArray.get(j));
                 }
             }
 
