@@ -6,17 +6,18 @@ import javax.swing.event.*;
 /**
 * The {@code DisplayView} class displays GUI, takes and validates user input.
 * @author Stepan Kostyukov
+* @author Andrew Belmont De Avila
 */
 public class DisplayView extends JFrame {
     private Simulation simulation = null;
 
     private JMenuBar menuBar;
     private JMenu fileMenu;
-    private JMenu aboutMenu;
+    private JMenu helpMenu;
 
     private JMenuItem startItem;
     private JMenuItem pauseItem;
-    private JMenuItem exitItem;
+    private JMenuItem resumeItem;
     private JMenuItem aboutItem;
 
     private JPanel mainPanel;
@@ -30,6 +31,7 @@ public class DisplayView extends JFrame {
 
     private JButton startButton;
     private JButton pauseButton;
+    private JButton resumeButton;
 
     private int populationNum = 100;
     private int oneShotPercent = 0;
@@ -41,7 +43,7 @@ public class DisplayView extends JFrame {
      * {@code DisplayView} constructor.
      */
     public DisplayView() {
-        super("Display View");
+        super("Pandemic Simulator Controls");
         
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
@@ -53,22 +55,26 @@ public class DisplayView extends JFrame {
         // menu bar
         menuBar = new JMenuBar();
         fileMenu = new JMenu ("File");
-        aboutMenu = new JMenu ("About");
+        helpMenu = new JMenu ("Help");
 
         startItem = new JMenuItem ("Start Simulation");
+        startItem.addActionListener(listener);
         fileMenu.add(startItem);
 
         pauseItem = new JMenuItem ("Pause Simulation");
+        pauseItem.addActionListener(listener);
         fileMenu.add(pauseItem);
 
-        exitItem = new JMenuItem ("Exit");
-        fileMenu.add(exitItem);
+        resumeItem = new JMenuItem ("Resume Simulation");
+        resumeItem.addActionListener(listener);
+        fileMenu.add(resumeItem);
         
         aboutItem = new JMenuItem ("About");
-        aboutMenu.add(aboutItem);
+        aboutItem.addActionListener(listener);
+        helpMenu.add(aboutItem);
         
         menuBar.add(fileMenu);
-        menuBar.add(aboutMenu);
+        menuBar.add(helpMenu);
 
         // container panel
         mainPanel = new JPanel();
@@ -144,10 +150,13 @@ public class DisplayView extends JFrame {
         butPanel = new JPanel(new FlowLayout());
         startButton = new JButton("Start Simulation");
         pauseButton = new JButton("Pause Simulation");
+        resumeButton = new JButton("Resume Simulation");
         startButton.addActionListener(listener);
         pauseButton.addActionListener(listener);
+        resumeButton.addActionListener(listener);
         butPanel.add(startButton);
         butPanel.add(pauseButton);
+        butPanel.add(resumeButton);
         
         // add components
         this.add(menuBar, BorderLayout.NORTH);
@@ -167,21 +176,23 @@ public class DisplayView extends JFrame {
                 if (simulation == null) {
                     simulation = new Simulation(populationNum, oneShotPercent, twoShotsPercent, threeShotsPercent, recoveredPercent);
                 }
-                else if (!simulation.time.isRunning()) {
-                    simulation.time.start();
-                }
-                else {
-                    JOptionPane.showMessageDialog(null, "Simulation is already running!");
-                }
+                else if (simulation.isOnPause()) { simulation.Resume(); }
+                else { JOptionPane.showMessageDialog(null, "Simulation is already running!"); }
             }
 
             if (ev.getActionCommand().equals("Pause Simulation")) {
-                if (simulation != null && simulation.time.isRunning()) {
-                    simulation.time.stop();
-                }
-                else {
-                    JOptionPane.showMessageDialog(null, "Simulation is not running!");
-                }
+                if (simulation != null && !simulation.isOnPause()) { simulation.Pause(); }
+                else { JOptionPane.showMessageDialog(null, "Simulation is not running!"); }
+            }
+
+            if (ev.getActionCommand().equals("Resume Simulation")) {
+                if (simulation != null && simulation.isOnPause()) { simulation.Resume(); }
+                else if (simulation != null && !simulation.isOnPause()) { JOptionPane.showMessageDialog(null, "Simulation is not on pause!"); }
+                else { JOptionPane.showMessageDialog(null, "Simulation is not running!"); }
+            }
+
+            if (ev.getActionCommand().equals("About")) {
+                JOptionPane.showMessageDialog(null, "This project was made by:\nAndrew Belmont De Avila,\nStepan Kostyukov.");
             }
         } // end actionPerformed
 

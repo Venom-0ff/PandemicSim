@@ -7,10 +7,14 @@ import java.util.ArrayList;
 /**
 * The {@code Simulation} class represents a spread of infection among population.
 * @author Stepan Kostyukov
+* @author Andrew Belmont De Avila
 */
 public class Simulation extends JPanel {
     // class members
-    public Timer time;
+    private Timer time;
+    private int simCycleCount = 0;
+    private boolean isOnPause = false;
+    public boolean isOnPause() { return this.isOnPause; }
     private final int WIDTH = 1920, HEIGHT = 1080;      // size of JPanel
 	private final int REFRESH_TIME = 200;               // time in milliseconds between re-paints of the screen
 	
@@ -48,25 +52,25 @@ public class Simulation extends JPanel {
         personArray.add(new Person(0, WIDTH, HEIGHT));
 
         if (this.oneShotPercent != 0) {
-            for (int i = 0; i < this.population / this.oneShotPercent * 100; i++) {
+            for (int i = 0; i < this.population * this.oneShotPercent / 100; i++) {
                 personArray.add(new Person(2, WIDTH, HEIGHT));
             }
         }
 
         if (this.twoShotsPercent != 0) {
-            for (int i = 0; i < this.population / this.twoShotsPercent * 100; i++) {
+            for (int i = 0; i < this.population * this.twoShotsPercent / 100; i++) {
                 personArray.add(new Person(3, WIDTH, HEIGHT));
             }
         }
 
         if (this.threeShotsPercent != 0) {
-            for (int i = 0; i < this.population / this.threeShotsPercent * 100; i++) {
+            for (int i = 0; i < this.population * this.threeShotsPercent / 100; i++) {
                 personArray.add(new Person(4, WIDTH, HEIGHT));
             }
         }
 
         if (this.recoveredPercent != 0) {
-            for (int i = 0; i < this.population / this.recoveredPercent * 100; i++) {
+            for (int i = 0; i < this.population * this.recoveredPercent / 100; i++) {
                 personArray.add(new Person(5, WIDTH, HEIGHT));
             }
         }
@@ -85,10 +89,38 @@ public class Simulation extends JPanel {
 
         this.time.start();
 
+        // TODO:
+        // After the user presses the START button, we would like to see the following data updated in real time as it changes:
+        // 1)	Number of infected persons.
+        // 2)	Number of non-vaccinated persons infected.
+        // 3)	Number of one-shot-vaccinated people infected.
+        // 4)	Number of two-shot-vaccinated people infected.
+        // 5)	Number of three-shot-vaccinated people infected.
+        // 6)	Number of naturally immune people who have been re-infected.
+        // 7)	Number of infected people who have recovered.
+        // 8)	Number of infected people who have died.
+
     } // end Simulation()
 
-    // TODO:
-    // Write a Pause()/Resume() functions.
+    /**
+     * {@code Pause()} allows to pause a running simulation.
+     */
+    public void Pause() {
+        if (!this.isOnPause()) {
+            this.time.stop();
+            this.isOnPause = true;
+        }
+    }
+
+    /**
+     * {@code Resume()} allows to resume previously paused simmulation.
+     */
+    public void Resume() {
+        if (this.isOnPause()) {
+            this.time.start();
+            this.isOnPause = false;
+        }
+    }
 
     @Override
     public void paintComponent(Graphics g)//The Graphics object 'g' is your paint brush
@@ -150,6 +182,23 @@ public class Simulation extends JPanel {
                 }
             }
 
+            // stop the simulation ofter 450 cycles
+            if (simCycleCount >= 450) {
+                time.stop();
+                // TODO:
+                // After the simulation has finished, use the data generated to calculate and display this information:
+                // 1)	Percentage of the total population that contracted the disease.
+                // 2)	Percentage of unvaccinated persons who contracted the disease.
+                // 3)	Percentage of one-shot-vaccinated persons who contracted the disease.
+                // 4)	Percentage of two-shot-vaccinated persons who contracted the disease.
+                // 5)	Percentage of three-shot-vaccinated persons who contracted the disease.
+                // 6)	Percentage of those naturally immune persons who got re-infected.
+                // 7)	Percentage of all those who contracted the disease that recovered.
+                // 8)	Death Rate Percentage of all those who contracted the disease that died, broken down by their immunity status.
+
+            }
+            
+            simCycleCount++;
             repaint();
         } // end actionPerformed()
     } // end CollisionListener class

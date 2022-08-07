@@ -4,6 +4,7 @@ import java.util.Random;
 /**
 * The {@code Person} class represents a person as a point in a two-dimensional space.
 * @author Stepan Kostyukov
+* @author Andrew Belmont De Avila
 */
 public class Person {
     // class members
