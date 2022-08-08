@@ -2,9 +2,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Set;
 import java.util.Random;
-import java.util.ArrayList;
 import java.util.HashSet;
-
+import java.util.ArrayList;
 import javax.swing.*;
 
 /**
