@@ -47,8 +47,9 @@ public class DisplayView extends JFrame {
         
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
-        this.setSize(1000, 500);
+        this.setSize(800, 600);
 		this.setLocationRelativeTo(null);
+        this.setResizable(false);
 
         Listener listener = new Listener();
 
@@ -176,17 +177,19 @@ public class DisplayView extends JFrame {
                 if (simulation == null) {
                     simulation = new Simulation(populationNum, oneShotPercent, twoShotsPercent, threeShotsPercent, recoveredPercent);
                 }
-                else if (simulation.isOnPause()) { simulation.Resume(); }
+                else if (simulation.isFinished()) { JOptionPane.showMessageDialog(null, "Simulation has already finished!"); }
                 else { JOptionPane.showMessageDialog(null, "Simulation is already running!"); }
             }
 
             if (ev.getActionCommand().equals("Pause Simulation")) {
-                if (simulation != null && !simulation.isOnPause()) { simulation.Pause(); }
+                if (simulation != null && !simulation.isOnPause() && !simulation.isFinished()) { simulation.Pause(); }
+                else if (simulation != null && simulation.isFinished()) { JOptionPane.showMessageDialog(null, "Simulation has already finished!"); }
                 else { JOptionPane.showMessageDialog(null, "Simulation is not running!"); }
             }
 
             if (ev.getActionCommand().equals("Resume Simulation")) {
-                if (simulation != null && simulation.isOnPause()) { simulation.Resume(); }
+                if (simulation != null && simulation.isOnPause() && !simulation.isFinished()) { simulation.Resume(); }
+                else if (simulation != null && simulation.isFinished()) { JOptionPane.showMessageDialog(null, "Simulation has already finished!"); }
                 else if (simulation != null && !simulation.isOnPause()) { JOptionPane.showMessageDialog(null, "Simulation is not on pause!"); }
                 else { JOptionPane.showMessageDialog(null, "Simulation is not running!"); }
             }
