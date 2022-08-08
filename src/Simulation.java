@@ -2,6 +2,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
 import javax.swing.*;
+import javax.swing.border.Border;
+
 import java.util.ArrayList;
 
 /**
@@ -15,8 +17,8 @@ public class Simulation extends JPanel {
     private int simCycleCount = 0;
     private boolean isOnPause = false;
     public boolean isOnPause() { return this.isOnPause; }
-    private final int WIDTH = 1920, HEIGHT = 1080;      // size of JPanel
-	private final int REFRESH_TIME = 200;               // time in milliseconds between re-paints of the screen
+    private final int WIDTH = 800, HEIGHT = 600;      // size of JPanel
+	private final int REFRESH_TIME = 200;             // time in milliseconds between re-paints of the screen
 	
     private int population = 100;
     private int oneShotPercent = 0;
@@ -24,6 +26,16 @@ public class Simulation extends JPanel {
     private int threeShotsPercent = 0;
     private int recoveredPercent = 0;
     private ArrayList<Person> personArray;
+
+    private JProgressBar progressBar;
+    private JLabel lblInf;
+    private JLabel lblNonVac;
+    private JLabel lbl1Shot;
+    private JLabel lbl2Shots;
+    private JLabel lbl3Shots;
+    private JLabel lblNatImm;
+    private JLabel lblRecovered;
+    private JLabel lblDied;
 
     /**
      * Starts the simulation of the pandemic.
@@ -33,11 +45,10 @@ public class Simulation extends JPanel {
 		
 		// boilerplate
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new FlowLayout());
-		frame.setSize(1920,1080);
+		frame.setLayout(new BorderLayout());
+		frame.setSize(WIDTH+100,HEIGHT+100);
 		frame.setLocationRelativeTo(null);
-		
-		frame.getContentPane().setBackground(Color.DARK_GRAY);
+        frame.setResizable(false);
 
         this.time = new Timer(REFRESH_TIME, new CollisionListener());
 
@@ -81,24 +92,55 @@ public class Simulation extends JPanel {
 
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		this.setBackground(Color.GRAY);
+        
+        progressBar = new JProgressBar();
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
 
-		frame.add(this);
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new GridLayout(8, 2, 10, 10));
+
+        infoPanel.add(new JLabel("Number of infected persons:"));
+        lblInf = new JLabel(String.valueOf(0));
+        infoPanel.add(lblInf);
+
+        infoPanel.add(new JLabel("Number of non-vaccinated persons infected:"));
+        lblNonVac = new JLabel(String.valueOf(0));
+        infoPanel.add(lblNonVac);
+
+        infoPanel.add(new JLabel("Number of one-shot-vaccinated people infected:"));
+        lbl1Shot = new JLabel(String.valueOf(0));
+        infoPanel.add(lbl1Shot);
+
+        infoPanel.add(new JLabel("Number of two-shot-vaccinated people infected:"));
+        lbl2Shots = new JLabel(String.valueOf(0));
+        infoPanel.add(lbl2Shots);
+
+        infoPanel.add(new JLabel("Number of three-shot-vaccinated people infected:"));
+        lbl3Shots = new JLabel(String.valueOf(0));
+        infoPanel.add(lbl3Shots);
+
+        infoPanel.add(new JLabel("Number of naturally immune people re-infected:"));
+        lblNatImm = new JLabel(String.valueOf(0));
+        infoPanel.add(lblNatImm);
+
+        infoPanel.add(new JLabel("Number of infected people who have recovered:"));
+        lblRecovered = new JLabel(String.valueOf(0));
+        infoPanel.add(lblRecovered);
+
+        infoPanel.add(new JLabel("Number of infected people who have died:"));
+        lblDied = new JLabel(String.valueOf(0));
+        infoPanel.add(lblDied);
+
+        frame.add(progressBar, BorderLayout.NORTH);
+		frame.add(this, BorderLayout.CENTER);
+        frame.add(infoPanel, BorderLayout.EAST);
 		frame.pack();
 
 		frame.setVisible(true);
 
         this.time.start();
 
-        // TODO:
-        // After the user presses the START button, we would like to see the following data updated in real time as it changes:
-        // 1)	Number of infected persons.
-        // 2)	Number of non-vaccinated persons infected.
-        // 3)	Number of one-shot-vaccinated people infected.
-        // 4)	Number of two-shot-vaccinated people infected.
-        // 5)	Number of three-shot-vaccinated people infected.
-        // 6)	Number of naturally immune people who have been re-infected.
-        // 7)	Number of infected people who have recovered.
-        // 8)	Number of infected people who have died.
 
     } // end Simulation()
 
@@ -123,7 +165,7 @@ public class Simulation extends JPanel {
     }
 
     @Override
-    public void paintComponent(Graphics g)//The Graphics object 'g' is your paint brush
+    public void paintComponent(Graphics g)
 	{
 		super.paintComponent(g);
 		
@@ -138,12 +180,21 @@ public class Simulation extends JPanel {
                 Person.getDiameter()
                 );
 		}
-	}//end paintComponent over-ride
+	} // end paintComponent()
 
 
     private class CollisionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            int infSum = 0;
+            int nonVacSum = 0;
+            int oneShotSum = 0;
+            int twoShotsSum = 0;
+            int threeShotsSum = 0;
+            int natImmSum = 0;
+            int recovSum = 0;
+            int diedSum = 0;
+
             for (int i = 0; i < personArray.size(); i++) {
                 // move the population around with move()
                 Person.move(personArray.get(i), WIDTH, HEIGHT);
@@ -169,11 +220,40 @@ public class Simulation extends JPanel {
                             personArray.get(i).setXInc(0);
                             personArray.get(i).setYInc(0);
                         }
-
+                        
+                        personArray.get(i).setCycleCount(0);
                         personArray.get(i).setIsInfected(false);
+                        infSum--;
                     }
                 }
             }
+
+            for (int i = 0; i < personArray.size(); i++) {
+                if (!personArray.get(i).isAlive()) {
+                    diedSum++;
+                }
+                else if (personArray.get(i).isInfected()) {
+                    infSum++;
+                    if (personArray.get(i).getImmunityStatus() == 1) { nonVacSum++; }
+                    if (personArray.get(i).getImmunityStatus() == 2) { oneShotSum++; }
+                    if (personArray.get(i).getImmunityStatus() == 3) { twoShotsSum++; }
+                    if (personArray.get(i).getImmunityStatus() == 4) { threeShotsSum++; }
+                    if (personArray.get(i).getImmunityStatus() == 5) { natImmSum++; }
+                }
+                else {
+                    if (personArray.get(i).getImmunityStatus() == 5) { recovSum++; }
+                }
+                
+            }
+
+            lblInf.setText(String.valueOf(infSum));
+            lblNonVac.setText(String.valueOf(nonVacSum));
+            lbl1Shot.setText(String.valueOf(oneShotSum));
+            lbl2Shots.setText(String.valueOf(twoShotsSum));
+            lbl3Shots.setText(String.valueOf(threeShotsSum));
+            lblNatImm.setText(String.valueOf(natImmSum));
+            lblRecovered.setText(String.valueOf(recovSum));
+            lblDied.setText(String.valueOf(diedSum));
 
             // check for collisions among the population
             for (int i = 0; i < personArray.size(); i++) {
@@ -183,7 +263,7 @@ public class Simulation extends JPanel {
             }
 
             // stop the simulation ofter 450 cycles
-            if (simCycleCount >= 450) {
+            if (simCycleCount > 450) {
                 time.stop();
                 // TODO:
                 // After the simulation has finished, use the data generated to calculate and display this information:
@@ -196,6 +276,10 @@ public class Simulation extends JPanel {
                 // 7)	Percentage of all those who contracted the disease that recovered.
                 // 8)	Death Rate Percentage of all those who contracted the disease that died, broken down by their immunity status.
 
+            }
+            else {
+                // fill the progressBar
+                progressBar.setValue(simCycleCount * 100 / 450);
             }
             
             simCycleCount++;
